@@ -54,6 +54,11 @@ class AnswerSelection(View):
 
 @bot.command()
 async def quiz(ctx: commands.Context, *args):
+    """Play a trivia quiz alone or with your friends!
+
+    Args:
+        ctx (commands.Context): _description_
+    """
     result = (
         {}
     )  # q : view (containing dict with values and all final selections of users)
@@ -84,11 +89,16 @@ async def quiz(ctx: commands.Context, *args):
         correct_answer = questions[r]["correct"]
         values = result[r].values
         for user in values:
-            if values[user] == correct_answer:
+            if values[user]-1 == correct_answer: #buttons 1-4 question indizes 0-3
                 scoreboard[user] += 1
         
         
-    print(scoreboard)
+    result_response = ">>> *Results!*\n"
+    result_response += "Total questions: 5\n\n"
+    for user,score in sorted(scoreboard.items(), key=lambda item: item[1], reverse=True):
+        result_response += f"{user}: {score}\n"
+    
+    await ctx.send(result_response)
     
     
 
