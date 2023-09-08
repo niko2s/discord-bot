@@ -79,10 +79,11 @@ async def quiz(ctx: commands.Context, *args):
 
         view = AnswerSelection()
         result[q["id"]] = view
-        await ctx.send(questionWithAnswers, view=view)
+        sent_msg = await ctx.send(questionWithAnswers, view=view)
+        await asyncio.sleep(10)
+        await sent_msg.delete()
     
     
-    await asyncio.sleep(30)
     
     scoreboard = defaultdict(int)
     for r in result:
@@ -94,7 +95,7 @@ async def quiz(ctx: commands.Context, *args):
         
         
     result_response = ">>> *Results!*\n"
-    result_response += "Total questions: 5\n\n"
+    result_response += f'Total questions: {len(questions)}\n\n'
     for user,score in sorted(scoreboard.items(), key=lambda item: item[1], reverse=True):
         result_response += f"{user}: {score}\n"
     
