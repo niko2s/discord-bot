@@ -4,7 +4,6 @@ import discord
 from discord.ui import Button, View
 from discord.ext import commands
 import trivia
-import ai
 import g4f
 import time
 import os
