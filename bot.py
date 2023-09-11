@@ -4,9 +4,12 @@ import discord
 from discord.ui import Button, View
 from discord.ext import commands
 import trivia
+import ai
+import g4f
 import time
 import os
 import asyncio
+import nest_asyncio
 from collections import defaultdict
 from dotenv import load_dotenv, find_dotenv
 
@@ -21,6 +24,7 @@ bot = commands.Bot(command_prefix="$", intents=intents)
 @bot.event
 async def on_ready():
     print(f"Logged on as {bot.user}!")
+    nest_asyncio.apply()
 
 class AnswerSelection(View):
     def __init__(self):
@@ -51,6 +55,21 @@ class AnswerSelection(View):
         print(self.values)
         await interaction.response.defer()
 
+
+@bot.command()
+async def ai(ctx: commands.Context, *args):
+    """Chat with AI
+
+    Args:
+        ctx (commands.Context): _description_
+    """
+    await ctx.defer()
+    result = g4f.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        provider=g4f.Provider.DeepAi,
+        messages=[{"role": "user", "content": args[0]}],
+    )
+    await ctx.send(result)
 
 @bot.command()
 async def quiz(ctx: commands.Context, *args):
