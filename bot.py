@@ -12,7 +12,7 @@ from collections import defaultdict
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
-
+MAX_MESSAGE_LENGTH = 2000 #characters
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -67,8 +67,11 @@ async def ai(ctx: commands.Context, *args):
         provider=g4f.Provider.DeepAi,
         messages=[{"role": "user", "content": "".join(args)}],
     )
-    await ctx.send(result)
-
+    
+    for i in range(0, len(result), MAX_MESSAGE_LENGTH):
+        chunk = result[i:i+MAX_MESSAGE_LENGTH]
+        await ctx.send(chunk)
+    
 @bot.command()
 async def quiz(ctx: commands.Context, *args):
     """Play a trivia quiz alone or with your friends!
