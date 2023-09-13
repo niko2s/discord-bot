@@ -5,6 +5,7 @@ from discord.ui import Button, View
 from discord.ext import commands
 import trivia
 import time
+import logging
 import os
 import asyncio
 from collections import defaultdict
@@ -16,6 +17,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="$", intents=intents)
+
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 
 
 @bot.event
@@ -104,4 +107,4 @@ async def quiz(ctx: commands.Context, *args):
     
 
 
-bot.run(os.environ.get("DISCORD_TOKEN"))
+bot.run(os.environ.get("DISCORD_TOKEN"), log_handler=handler)
