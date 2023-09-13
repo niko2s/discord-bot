@@ -5,7 +5,6 @@ from discord.ui import Button, View
 from discord.ext import commands
 import trivia
 import g4f
-import time
 import os
 import asyncio
 import nest_asyncio
@@ -66,7 +65,7 @@ async def ai(ctx: commands.Context, *args):
     result = g4f.ChatCompletion.create(
         model="gpt-3.5-turbo",
         provider=g4f.Provider.DeepAi,
-        messages=[{"role": "user", "content": args[0]}],
+        messages=[{"role": "user", "content": "".join(args)}],
     )
     await ctx.send(result)
 
