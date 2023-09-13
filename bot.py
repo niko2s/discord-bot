@@ -6,13 +6,15 @@ from discord.ext import commands
 import trivia
 import time
 import logging
+import g4f
 import os
 import asyncio
+import nest_asyncio
 from collections import defaultdict
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
-
+MAX_MESSAGE_LENGTH = 2000 #characters
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -24,6 +26,7 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 @bot.event
 async def on_ready():
     print(f"Logged on as {bot.user}!")
+    nest_asyncio.apply()
 
 class AnswerSelection(View):
     def __init__(self):
@@ -55,6 +58,24 @@ class AnswerSelection(View):
         await interaction.response.defer()
 
 
+@bot.command()
+async def ai(ctx: commands.Context, *args):
+    """Chat with AI
+
+    Args:
+        ctx (commands.Context): _description_
+    """
+    await ctx.defer()
+    result = g4f.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        provider=g4f.Provider.DeepAi,
+        messages=[{"role": "user", "content": "".join(args)}],
+    )
+    
+    for i in range(0, len(result), MAX_MESSAGE_LENGTH):
+        chunk = result[i:i+MAX_MESSAGE_LENGTH]
+        await ctx.send(chunk)
+    
 @bot.command()
 async def quiz(ctx: commands.Context, *args):
     """Play a trivia quiz alone or with your friends!

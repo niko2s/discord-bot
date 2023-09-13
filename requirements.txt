@@ -1,0 +1,5 @@
+discord.py==2.3.2
+g4f==0.0.2.8
+nest_asyncio==1.5.7
+python-dotenv==1.0.0
+Requests==2.31.0
