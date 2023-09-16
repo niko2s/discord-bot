@@ -3,6 +3,7 @@
 import discord
 from discord.ui import Button, View
 from discord.ext import commands
+from discord import app_commands
 import trivia
 import time
 import logging
@@ -14,19 +15,22 @@ from collections import defaultdict
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
-MAX_MESSAGE_LENGTH = 2000 #characters
+MAX_MESSAGE_LENGTH = 2000  # characters
 intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="$", intents=intents)
-
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 
 
 @bot.event
 async def on_ready():
     print(f"Logged on as {bot.user}!")
     nest_asyncio.apply()
+
+    synced = await bot.tree.sync()
+    print(f"Synced {len(synced)} command(s)")
+
 
 class AnswerSelection(View):
     def __init__(self):
@@ -58,26 +62,48 @@ class AnswerSelection(View):
         await interaction.response.defer()
 
 
-@bot.command()
-async def ai(ctx: commands.Context, *args):
+@bot.tree.command(name="ai")
+@app_commands.describe(prompt="Enter a message")
+async def ai(interaction: discord.Interaction, prompt: str):
     """Chat with AI
 
     Args:
         ctx (commands.Context): _description_
     """
-    await ctx.defer()
+    await interaction.response.defer(thinking=True)
     result = g4f.ChatCompletion.create(
         model="gpt-3.5-turbo",
         provider=g4f.Provider.DeepAi,
-        messages=[{"role": "user", "content": "".join(args)}],
+        messages=[{"role": "user", "content": os.environ.get("PRE_PROMPT") + prompt}],
     )
-    
+
+    msg = await interaction.original_response()
+
     for i in range(0, len(result), MAX_MESSAGE_LENGTH):
-        chunk = result[i:i+MAX_MESSAGE_LENGTH]
-        await ctx.send(chunk)
-    
-@bot.command()
-async def quiz(ctx: commands.Context, *args):
+        chunk = result[i : i + MAX_MESSAGE_LENGTH]
+        if i == 0:
+            await msg.edit(content=chunk)
+        else:
+            await interaction.channel.send(content=chunk)
+
+
+@bot.tree.command(name="hello")
+async def hello(interaction: discord.Interaction):
+    await interaction.response.send_message(f"Hello {interaction.user.name}")
+
+
+@bot.tree.command(name="say")
+@app_commands.describe(thing_to_say="What should I say?")
+async def say(interaction: discord.Interaction, thing_to_say: str):
+    await interaction.response.defer()
+    await asyncio.sleep(3)
+    msg = await interaction.original_response()
+    await msg.edit(content=thing_to_say)
+    await interaction.channel.send("Hello")
+
+
+@bot.tree.command(name="quiz")
+async def quiz(interaction: discord.Interaction):
     """Play a trivia quiz alone or with your friends!
 
     Args:
@@ -88,9 +114,11 @@ async def quiz(ctx: commands.Context, *args):
     )  # q : view (containing dict with values and all final selections of users)
 
     questions = trivia.fetchQuestions(os.environ.get("TRIVIA_API"))
-    await ctx.send("Quiz starting!")
-    await asyncio.sleep(3)
+    await interaction.response.send_message("Quiz starting!")
+    first_msg = await interaction.original_response()
 
+    await asyncio.sleep(3)
+    time_between_questions = 10
     for q in questions:
         questionWithAnswers = ">>> "
 
@@ -103,29 +131,28 @@ async def quiz(ctx: commands.Context, *args):
 
         view = AnswerSelection()
         result[q["id"]] = view
-        sent_msg = await ctx.send(questionWithAnswers, view=view)
-        await asyncio.sleep(10)
-        await sent_msg.delete()
-    
-    
-    
+
+        await interaction.channel.send(
+            questionWithAnswers, view=view, delete_after=time_between_questions
+        )
+        await asyncio.sleep(time_between_questions)
+
     scoreboard = defaultdict(int)
     for r in result:
         correct_answer = questions[r]["correct"]
         values = result[r].values
         for user in values:
-            if values[user]-1 == correct_answer: #buttons 1-4 question indizes 0-3
+            if values[user] - 1 == correct_answer:  # buttons 1-4 question indizes 0-3
                 scoreboard[user] += 1
-        
-        
+
     result_response = ">>> *Results!*\n"
-    result_response += f'Total questions: {len(questions)}\n\n'
-    for user,score in sorted(scoreboard.items(), key=lambda item: item[1], reverse=True):
+    result_response += f"Total questions: {len(questions)}\n\n"
+    for user, score in sorted(
+        scoreboard.items(), key=lambda item: item[1], reverse=True
+    ):
         result_response += f"{user}: {score}\n"
-    
-    await ctx.send(result_response)
-    
-    
+
+    await first_msg.edit(content=result_response)
 
 
 bot.run(os.environ.get("DISCORD_TOKEN"), log_handler=handler)
