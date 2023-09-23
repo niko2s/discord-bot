@@ -93,15 +93,6 @@ async def hello(interaction: discord.Interaction):
     await interaction.response.send_message(f"Hello {interaction.user.name}")
 
 
-@bot.tree.command(name="say")
-@app_commands.describe(thing_to_say="What should I say?")
-async def say(interaction: discord.Interaction, thing_to_say: str):
-    await interaction.response.defer()
-    await asyncio.sleep(3)
-    msg = await interaction.original_response()
-    await msg.edit(content=thing_to_say)
-    await interaction.channel.send("Hello")
-
 
 @bot.tree.command(name="urban")
 @app_commands.describe(search="What word should I look up?")
