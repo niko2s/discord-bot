@@ -15,8 +15,9 @@ If the functionality is based on information retrieval using APIs, the source is
 - Play trivia quizzes alone or with friends
 - This API is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).  For more information, refer to their website.
 
+![trivia-quiz](https://github.com/niko2s/discord-bot/assets/90977134/095cbf7d-3acf-4ab3-b8e9-10cacef8d4df)
 
-![Trivia-Quiz](https://github.com/niko2s/discord-bot/assets/90977134/cdb77dbd-5a21-4d84-8c48-7288b217b674)
+
 
 ### Chat with AI
 - Source: [xtekky/gpt4free](https://github.com/xtekky/gpt4free)
@@ -26,7 +27,9 @@ If the functionality is based on information retrieval using APIs, the source is
 - Source: [Free Dictionary API](https://dictionaryapi.dev/)
 - Get word pronunciation, definitions, synonyms, antonyms
   
-![Screenshot 2023-10-09 at 23 49 28](https://github.com/niko2s/discord-bot/assets/90977134/43fd645e-3d75-492f-949b-bd9b88f838cf)
+![dictionary-input](https://github.com/niko2s/discord-bot/assets/90977134/f78b6d35-4182-4f93-a19c-6831d56c67a1)
+
+![dictionary-output](https://github.com/niko2s/discord-bot/assets/90977134/27024e46-3348-44cb-8ac5-2dcf97d3ec1b)
 
 
 ![Screenshot 2023-10-09 at 23 49 36](https://github.com/niko2s/discord-bot/assets/90977134/fb673ed7-ac12-4474-8f40-2d31433e48c9)
@@ -58,7 +61,8 @@ If the functionality is based on information retrieval using APIs, the source is
 5. **Try the Command**:
    - type `/` in a text channel the bot has access to, and a list of all available commands along with brief descriptions and required parameters will appear
      
-   ![Commands](https://github.com/niko2s/discord-bot/assets/90977134/4e589c5a-272e-4e60-b4ec-9bb1c1701f87)
+  
+![Commands](https://github.com/niko2s/discord-bot/assets/90977134/cee0a474-a7bd-4833-949a-aed3df7a51fc)
 
 
 ## Copyright
