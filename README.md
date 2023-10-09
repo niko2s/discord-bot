@@ -32,8 +32,6 @@ If the functionality is based on information retrieval using APIs, the source is
 ![dictionary-output](https://github.com/niko2s/discord-bot/assets/90977134/27024e46-3348-44cb-8ac5-2dcf97d3ec1b)
 
 
-![Screenshot 2023-10-09 at 23 49 36](https://github.com/niko2s/discord-bot/assets/90977134/fb673ed7-ac12-4474-8f40-2d31433e48c9)
-
 ### Urban Dictionary (NSFW)
 - Source: [RapidAPI/UrbanDictionary](https://rapidapi.com/archergardinersheridan/api/urban-dictionary7)
 - Informal and slang word lookup
