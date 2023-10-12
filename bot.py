@@ -5,7 +5,7 @@ import os
 import nest_asyncio
 from datetime import datetime
 from dotenv import load_dotenv, find_dotenv
-
+import sys
 
 class Client(commands.Bot):
     def __init__(self):
@@ -29,16 +29,8 @@ class Client(commands.Bot):
 
 
 load_dotenv(find_dotenv())
-
-# create logs folder if does not exist
-log_folder = 'logs'
-if not os.path.exists(log_folder):
-    os.makedirs(log_folder)
-
-#use timestamps so logs do not overwrite each other
-now = datetime.now()
-timestamp_str = now.strftime('%Y-%m-%d_%H-%M-%S')                             
-handler = logging.FileHandler(filename=f"{log_folder}/discord_{timestamp_str}.log", encoding="utf-8", mode="w")
+                          
+handler = logging.StreamHandler(sys.stdout)
 
 client = Client()
 client.run(os.environ.get("DISCORD_TOKEN"), log_handler=handler)
