@@ -1,5 +1,4 @@
 import discord
-from discord.ui import Button, View
 from discord.ext import commands
 from discord import app_commands
 import asyncio
@@ -8,6 +7,7 @@ import os
 import requests
 import json
 import random
+from cogs.view.answer import AnswerSelection
 
 
 class quiz(commands.Cog):
@@ -17,9 +17,6 @@ class quiz(commands.Cog):
     @app_commands.command(name="quiz", description="Play a trivia quiz!")
     async def quiz(self, interaction: discord.Interaction):
         """Play a trivia quiz alone or with your friends!
-
-        Args:
-            ctx (commands.Context): _description_
         """
         result = (
             {}
@@ -32,20 +29,20 @@ class quiz(commands.Cog):
         await asyncio.sleep(3)
         time_between_questions = 10
         for q in questions:
-            questionWithAnswers = ">>> "
+            question_with_answers = ">>> "
 
-            questionWithAnswers += f'**{q["question"]}**\n'
+            question_with_answers += f'**{q["question"]}**\n'
 
             for idx, a in enumerate(q["answers"], 1):
-                questionWithAnswers += f"{idx}. {a}\n"
+                question_with_answers += f"{idx}. {a}\n"
 
-            questionWithAnswers += ""
+            question_with_answers += ""
 
             view = AnswerSelection()
             result[q["id"]] = view
 
             await interaction.channel.send(
-                questionWithAnswers, view=view, delete_after=time_between_questions
+                question_with_answers, view=view, delete_after=time_between_questions
             )
             await asyncio.sleep(time_between_questions)
 
@@ -56,7 +53,7 @@ class quiz(commands.Cog):
             for user in values:
                 if (
                     values[user] - 1 == correct_answer
-                ):  # buttons 1-4 question indizes 0-3
+                ):  # buttons 1-4 question indices 0-3
                     scoreboard[user] += 1
 
         result_response = ">>> *Results!*\n"
@@ -67,36 +64,6 @@ class quiz(commands.Cog):
             result_response += f"{user}: {score}\n"
 
         await first_msg.edit(content=result_response)
-
-
-class AnswerSelection(View):
-    def __init__(self):
-        super().__init__()
-        self.values = {}  # user: selected
-
-    @discord.ui.button(label="1", style=discord.ButtonStyle.blurple)
-    async def option1(self, interaction: discord.Interaction, button: Button):
-        self.values[interaction.user.global_name] = 1
-        print(self.values)
-        await interaction.response.defer()
-
-    @discord.ui.button(label="2", style=discord.ButtonStyle.green)
-    async def option2(self, interaction: discord.Interaction, button: Button):
-        self.values[interaction.user.global_name] = 2
-        print(self.values)
-        await interaction.response.defer()
-
-    @discord.ui.button(label="3", style=discord.ButtonStyle.gray)
-    async def option3(self, interaction: discord.Interaction, button: Button):
-        self.values[interaction.user.global_name] = 3
-        print(self.values)
-        await interaction.response.defer()
-
-    @discord.ui.button(label="4", style=discord.ButtonStyle.red)
-    async def option4(self, interaction: discord.Interaction, button: Button):
-        self.values[interaction.user.global_name] = 4
-        print(self.values)
-        await interaction.response.defer()
 
 
 def fetchQuestions(api_url):
