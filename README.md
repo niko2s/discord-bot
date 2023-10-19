@@ -10,7 +10,7 @@ Use all APIs at own risk, refer to their respective licenses, that can be found 
 
 ## Features
 If the functionality is based on information retrieval using APIs, the source is given.
-### Multiplayer Trivia
+### Multiplayer Trivia (/quiz)
 - Source: [The Trivia API](https://the-trivia-api.com/)
 - Play trivia quizzes alone or with friends
 - This API is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).  For more information, refer to their website.
@@ -18,6 +18,12 @@ If the functionality is based on information retrieval using APIs, the source is
 ![trivia-quiz](https://github.com/niko2s/discord-bot/assets/90977134/095cbf7d-3acf-4ab3-b8e9-10cacef8d4df)
 
 
+
+### Multiplayer Trivia (/triviaquiz)
+- Source: [Open Trivia Database](https://opentdb.com/)
+- Play trivia quizzes alone or with friends
+- This API is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).  For more information, refer to their website.
+- **Improved version, other API, better visuals, adjust question settings (amount, category, difficulty)**
 
 ### Chat with AI
 - Source: [xtekky/gpt4free](https://github.com/xtekky/gpt4free)
