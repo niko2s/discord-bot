@@ -38,6 +38,15 @@ jobs:
             registry-login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
             registry-username: ${{ secrets.REGISTRY_USERNAME }}
             registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-            secure-environment-variables: DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} TRIVIA_API=${{ secrets.TRIVIA_API }} TRIVIA_TDB=${{ secrets.TRIVIA_TDB }} TRIVIA_TDB_CATEGORIES=${{ secrets.TRIVIA_TDB_CATEGORIES }} DICTIONARY_API=${{ secrets.DICTIONARY_API }}
+            secure-environment-variables: >
+                DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
+                DICTIONARY_API=${{ secrets.DICTIONARY_API }}
+                TRIVIA_API=${{ secrets.TRIVIA_API }}
+                TRIVIA_TDB=${{ secrets.TRIVIA_TDB }}
+                TRIVIA_TDB_CATEGORIES=${{ secrets.TRIVIA_TDB_CATEGORIES }}
+                URBAN_HOST=${{ secrets.URBAN_HOST }}
+                URBAN_KEY=${{ secrets.URBAN_KEY }}
+                URBAN_URL=${{ secrets.URBAN_URL }}
+                PRE_PROMPT=${{ secrets.PRE_PROMPT }}
             name: discord-bot-deployment
             location: 'west europe'
