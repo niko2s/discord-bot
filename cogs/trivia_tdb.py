@@ -25,7 +25,6 @@ def fetch_categories() -> Dict[str, int]:
         for category in trivia_categories:
             res[category["name"]] = category["id"]
 
-        print(res)
         return res
     else:
         logging.error("Failed to fetch trivia categories")
@@ -83,22 +82,33 @@ class TriviaQuiz(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
         await asyncio.sleep(3)
+
+        # time in seconds
         time_between_questions = 10
-        for q in questions:
-            question_with_answers = ">>> "
+        time_to_next_question = 3
 
-            question_with_answers += f'**{q["question"]}**\n'
+        amount_questions = len(questions)
+        for idx, q in enumerate(questions, 1):
+            question_embed_title = f"{idx}/{amount_questions} **{q['question']}**"
+            question_embed_footer = f"{q['category']}, {q['difficulty']}"
 
-            for idx, a in enumerate(q["answers"], 1):
-                question_with_answers += f"{idx}. {a}\n"
+            question_embed = discord.Embed(title=question_embed_title,
+                                           color=discord.Color.from_rgb(255, 255, 255))
 
-            question_with_answers += ""
+            question_embed.set_footer(text=question_embed_footer)
+
+            possible_answers = ""
+
+            for idx_a, a in enumerate(q["answers"], 1):
+                possible_answers += f"{idx_a}. {a}\n"
+
+            question_embed.add_field(name="Answers", value=possible_answers)
 
             view = AnswerSelection()
             result[q["id"]] = view
 
             sent_question: discord.Message = await interaction.channel.send(
-                question_with_answers, view=view
+                embed=question_embed, view=view
             )
             remaining_seconds = time_between_questions
 
@@ -109,25 +119,38 @@ class TriviaQuiz(commands.Cog):
                 remaining_seconds -= 1
                 await asyncio.sleep(1)
 
-            await sent_question.edit(view=None)
-            await timer.edit(content=f"Correct answer is: {q['correct']+1}")
-            await asyncio.sleep(3)
+            result_embed = discord.Embed(title=question_embed_title,
+                                         color=discord.Color.from_rgb(0, 163, 108))
+
+            result_embed.add_field(name="Answers", value=possible_answers)
+            result_embed.add_field(name="Correct",
+                                   value=f"{q['correct'] + 1}. {q['answers'][q['correct']]}",
+                                   inline=False)
+            result_embed.set_footer(text=question_embed_footer)
+
+            await sent_question.edit(embed=result_embed, view=None)
+
+            remaining_seconds = time_to_next_question
+            next_action_msg = "Next question" if idx != len(questions) else "Results"
+            while remaining_seconds:
+                await timer.edit(content=f"{next_action_msg} in: {remaining_seconds}")
+                remaining_seconds -= 1
+                await asyncio.sleep(1)
+
             await interaction.channel.delete_messages([sent_question, timer])
 
+        # count correct answers for scoreboard
         scoreboard = defaultdict(int)
         for r in result:
             correct_answer = questions[r]["correct"]
             values = result[r].values
             for user in values:
-                if (
-                        values[user] - 1 == correct_answer
-                ):  # buttons 1-4 question indices 0-3
+                if values[user] - 1 == correct_answer:  # buttons 1-4 question indices 0-3
                     scoreboard[user] += 1
 
+        # edit first embed to show scoreboard
         result_response = f"Total questions: {len(questions)}\n\n:crown:"
-        for user, score in sorted(
-                scoreboard.items(), key=lambda item: item[1], reverse=True
-        ):
+        for user, score in sorted(scoreboard.items(), key=lambda item: item[1], reverse=True):
             result_response += f"{user}: {score}\n"
 
         embed.add_field(name="Results", value=result_response)
@@ -145,20 +168,32 @@ def fetch_questions(api_url):
             questions = data["results"]
 
             for idx, q in enumerate(questions):
-                insert_pos = random.randint(0, 3)
-                q["incorrect_answers"].insert(insert_pos, q["correct_answer"])
+
+                correct_answer = q["correct_answer"]
+                incorrect_answers = q["incorrect_answers"]
+
+                # boolean / multiple choice questions
+                if len(incorrect_answers) == 1:
+                    correct_pos = 0 if correct_answer == "True" else 1
+                else:
+                    correct_pos = random.randint(0, 3)
+
+                incorrect_answers.insert(correct_pos, correct_answer)
+
+                # TODO refactor this to class
                 res.append(
                     {
                         "id": idx,
+                        "category": q["category"],
+                        "difficulty": q["difficulty"],
                         "question": html.unescape(q["question"]),
-                        "correct": insert_pos,
-                        "answers": [html.unescape(s) for s in q["incorrect_answers"]],
+                        "correct": correct_pos,
+                        "answers": [html.unescape(s) for s in incorrect_answers],
                     }
                 )
 
     else:
-        print("Failed to retrieve questions")
-
+        logging.error("Failed to retrieve questions")
     return res
 
 
