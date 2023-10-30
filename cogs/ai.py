@@ -22,7 +22,7 @@ class ai(commands.Cog):
         await interaction.response.defer(thinking=True)
         result = g4f.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            provider=g4f.Provider.DeepAi,
+            provider=g4f.Provider.GptGo,
             messages=[
                 {"role": "user", "content": os.environ.get("PRE_PROMPT") + prompt}
             ],
