@@ -43,6 +43,10 @@ If the functionality is based on information retrieval using APIs, the source is
 - Informal and slang word lookup
 - NSFW: May contain inappropriate language
 
+### The Cat API
+- Source: [The Cat API](https://thecatapi.com)
+- Get a random cat image
+
 
 
 ## Usage
