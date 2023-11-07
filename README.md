@@ -29,6 +29,10 @@
 - Source: [The Cat API](https://thecatapi.com)
 - Get a random cat image
 
+### Image Resizing
+- Scale images to a desired percentage of their original size
+- Modify one axis to desired pixel amount, maintaining original aspect ratio
+
 ## 🚀 Usage
 
 1. **Register the application**
