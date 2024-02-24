@@ -1,5 +1,17 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+# C extensions
+*.so
+
+# Environments
 .env
-__pycache__
-.vscode
+
+# Application logs
 logs
+
+# Editor/OSX specific files
+.vscode
 .idea
+.DS_Store
