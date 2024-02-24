@@ -28,7 +28,7 @@ class Client(commands.Bot):
         logging.info(f"Synced {len(synced)} command(s)")
 
 
-load_dotenv(find_dotenv())
+load_dotenv(find_dotenv(), override=True)
                           
 handler = logging.StreamHandler(sys.stdout)
 
