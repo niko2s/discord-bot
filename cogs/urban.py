@@ -61,7 +61,7 @@ class urban(commands.Cog):
             await interaction.response.send_message(embed=embed)
         else:
             await interaction.response.send_message(
-                "Error happened! Status code" + response.status_code
+                "Error happened! Status code: " + str(response.status_code)
             )
 
 
