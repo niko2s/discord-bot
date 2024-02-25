@@ -44,7 +44,6 @@
    - Download or clone this repository to your local machine
    - Rename the file `.env.example` to `.env`
    - Populate the `.env` file with the necessary API credentials
-   - The Chat with AI feature is enabled by default; to disable it, follow the instructions mentioned in the Disclaimer section
 
 4. **Run the bot**
    - Open a terminal in this repository's directory and execute:
