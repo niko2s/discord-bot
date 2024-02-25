@@ -48,7 +48,8 @@ jobs:
                 URBAN_HOST=${{ secrets.URBAN_HOST }}
                 URBAN_KEY=${{ secrets.URBAN_KEY }}
                 URBAN_URL=${{ secrets.URBAN_URL }}
-                PRE_PROMPT=${{ secrets.PRE_PROMPT }}
                 CAT_API=${{ secrets.CAT_API }}
+                OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}
+                OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             name: discord-bot-deployment
             location: 'west europe'

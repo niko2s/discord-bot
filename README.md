@@ -13,9 +13,10 @@
 - **Improved version, other API, better visuals, adjust question settings (amount, category, difficulty)**
 - Play trivia quizzes alone or with friends
 
-### Chat with AI
-- Source: [xtekky/gpt4free](https://github.com/xtekky/gpt4free)
+### AI
 - Chat or ask questions to AI
+- Create images with AI
+
 
 ### Dictionary Lookup
 - Source: [Free Dictionary API](https://dictionaryapi.dev/)
@@ -53,32 +54,3 @@
 5. **Try the commands**
    - type `/` in a text channel the bot has access to, and a list of all available commands along with brief descriptions and required parameters will appear
      
-  
-
-## Disclaimer
-This repository was created for my educational and non-commercial use, showcasing coding skills. It uses code from [xtekky/gpt4free](https://github.com/xtekky/gpt4free). Use at your own risk. For license info, see [LICENSE](LICENSE) and [LEGAL_NOTICE.md](LEGAL_NOTICE.md) (same as [xtekky/gpt4free](https://github.com/xtekky/gpt4free)).
-
-To exclude the referenced repository, remove [cogs/ai.py](cogs/ai.py) and `g4f==0.0.2.8` from [requirements.txt](requirements.txt).
-
-Use all APIs at own risk, refer to their respective licenses, that can be found on the websites/repositories.
-
-## Copyright
-
-This program is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.txt)
-
-```
-niko2s/discord-bot: Copyright (C) 2023 niko2s
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
-```
