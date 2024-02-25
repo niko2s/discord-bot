@@ -84,9 +84,6 @@ def fetchQuestions(api_url):
                 }
             )
 
-    else:
-        print("Failed to retrieve questions")
-
     return res
 
 

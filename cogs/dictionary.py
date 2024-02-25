@@ -16,7 +16,6 @@ class dictionary(commands.Cog):
         api = os.getenv("DICTIONARY_API")
 
         response = requests.get(api + search)
-        print(response.status_code)
         if response.status_code == 200:
             data = response.json()[0]
 
