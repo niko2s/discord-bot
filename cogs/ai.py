@@ -56,9 +56,9 @@ class ai(commands.Cog):
             response = self.ai_client.images.generate(
             model=self.img_model,
             prompt=prompt,
-            size=self.img_size,
-            quality=self.img_quality,
-            n=self.img_n,
+            size="1024x1024",
+            quality='standard',
+            n='1',
             )
             
             image_data = await download.download_file(response.data[0].url)
