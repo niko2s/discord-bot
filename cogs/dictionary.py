@@ -1,12 +1,12 @@
+import os
 import discord
 from discord.ext import commands
 from discord import app_commands
-import os
 import requests
 
 
 # serves as example/template for cogs
-class dictionary(commands.Cog):
+class Dictionary(commands.Cog):
     def __init__(self, client: commands.Bot):
         self.client = client
 
@@ -15,7 +15,7 @@ class dictionary(commands.Cog):
     async def word(self, interaction: discord.Interaction, search: str):
         api = os.getenv("DICTIONARY_API")
 
-        response = requests.get(api + search)
+        response = requests.get(api + search, timeout=10)
         if response.status_code == 200:
             data = response.json()[0]
 
@@ -38,14 +38,14 @@ class dictionary(commands.Cog):
 
             meanings = data.get("meanings", [])
             for meaning in meanings:
-                partOfSpeech = meaning.get("partOfSpeech")
+                part_of_speech = meaning.get("partOfSpeech")
                 definitions = meaning.get("definitions", [{}])
                 definitions_string = ""
                 for i in range(min(3, len(definitions))):
                     definitions_string += f'\u2022 {definitions[i]["definition"]} \n'
 
                 embed.add_field(
-                    name=f"{partOfSpeech}",
+                    name=f"{part_of_speech}",
                     value=f"{definitions_string}",
                     inline=False,
                 )
@@ -77,4 +77,4 @@ class dictionary(commands.Cog):
 
 
 async def setup(client: commands.Bot) -> None:
-    await client.add_cog(dictionary(client))
+    await client.add_cog(Dictionary(client))
