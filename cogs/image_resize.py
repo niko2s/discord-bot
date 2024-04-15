@@ -1,9 +1,10 @@
+from io import BytesIO
+from typing import Tuple
 import discord
 from discord.ext import commands
 from discord import app_commands
 from PIL import Image
 from utils import download
-from io import BytesIO
 
 
 class Resize(commands.Cog):
@@ -24,9 +25,9 @@ class Resize(commands.Cog):
         self,
         interaction: discord.Interaction,
         image: discord.Attachment,
-        desired_size: app_commands.Choice[float]
+        desired_size: app_commands.Choice[float],
     ):
-        filename_modification = desired_size.name[:-1] + "pct" # removed % for filename
+        filename_modification = desired_size.name[:-1] + "pct"  # removed % for filename
 
         await handle_resize_request(
             interaction,
@@ -57,26 +58,24 @@ class Resize(commands.Cog):
         pixels: int,
     ):
         """
-		Args:
-			interaction (discord.Interaction): Discord interaction 
-			image (discord.Attachment): Image to resize
-			axis (app_commands.Choice[int]): 0 if x, 1 if y
-			pixels (int): Desired amount of pixels on axis
-  		"""
+        Args:
+                interaction (discord.Interaction): Discord interaction
+                image (discord.Attachment): Image to resize
+                axis (app_commands.Choice[int]): 0 if x, 1 if y
+                pixels (int): Desired amount of pixels on axis
+        """
         filename_modification = f"{axis.name}-{pixels}px"
 
         # calculate target size with images aspect ratio
         target_size = None
-        
         if axis.value:
-           	# new y(height in pixels) is given
+            # new y(height in pixels) is given
             x = int(image.width / image.height * pixels)
             target_size = (x, pixels)
         else:
             # new x(width in pixels) is given
             y = pixels * image.height // image.width
             target_size = (pixels, y)
-            
 
         await handle_resize_request(
             interaction, image, filename_modification, target_size
@@ -87,16 +86,16 @@ async def handle_resize_request(
     interaction: discord.Interaction,
     image: discord.Attachment,
     filename_modification: str,
-    target_size: (int, int)
+    target_size: Tuple[int,int],
 ):
     """Handle entire interaction and resize image to desired size
-    
-	Args:
-		interaction (discord.Interaction): Discord interaction
-		image (discord.Attachment): Image to resize
-		filename_modification (str): Description of the resize operation, will be appended to the resized image
-		target_size (int, int): Size as Tuple(width: int, height: int) of resized image
-	"""
+
+    Args:
+            interaction (discord.Interaction): Discord interaction
+            image (discord.Attachment): Image to resize
+            filename_modification (str): Description of the resize operation, appended to new image
+            target_size (int, int): Size as Tuple(width: int, height: int) of resized image
+    """
     await interaction.response.defer(thinking=True)
 
     type_, subtype = image.content_type.split("/")
@@ -106,11 +105,7 @@ async def handle_resize_request(
         # read discord.Attachment into PIL.Image and resize it
         data = await download.download_file(image.url)
         img = Image.open(data)
-        img = img.resize(
-            target_size,
-            Image.LANCZOS,
-        )
-
+        img = img.resize(target_size, Image.LANCZO)  # pylint: disable=no-member
         # write to buffer, so it can be sent
         img_buffer = BytesIO()
         img.save(img_buffer, format=subtype)
