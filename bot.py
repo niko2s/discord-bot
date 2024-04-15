@@ -30,7 +30,6 @@ class Client(commands.Bot):
 
 load_dotenv(find_dotenv(), override=True)
                           
-handler = logging.StreamHandler(sys.stdout)
 
 client = Client()
-client.run(os.environ.get("DISCORD_TOKEN"), log_handler=handler)
+client.run(os.environ.get("DISCORD_TOKEN"), root_logger=True)
