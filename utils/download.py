@@ -1,5 +1,5 @@
-import aiohttp
 import io
+import aiohttp
 
 async def download_file(url) -> io.BytesIO | None:
     async with aiohttp.ClientSession() as session:

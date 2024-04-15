@@ -1,12 +1,12 @@
+import os
 import discord
 from discord.ext import commands
 from discord import app_commands
-import os
 import requests
 
 
 # serves as example/template for cogs
-class urban(commands.Cog):
+class Urban(commands.Cog):
     def __init__(self, client: commands.Bot):
         self.client = client
 
@@ -29,7 +29,7 @@ class urban(commands.Cog):
             "X-RapidAPI-Host": os.getenv("URBAN_HOST"),
         }
 
-        response = requests.get(url, headers=headers, params=querystring)
+        response = requests.get(url, headers=headers, params=querystring, timeout=10)
 
         if response.status_code == 200:
             data = response.json()
@@ -66,4 +66,4 @@ class urban(commands.Cog):
 
 
 async def setup(client: commands.Bot) -> None:
-    await client.add_cog(urban(client))
+    await client.add_cog(Urban(client))

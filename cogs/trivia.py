@@ -1,28 +1,27 @@
-import discord
-from discord.ext import commands
-from discord import app_commands
 import asyncio
 from collections import defaultdict
 import os
-import requests
 import json
 import random
+import discord
+from discord.ext import commands
+from discord import app_commands
+import requests
 from cogs.view.answer import AnswerSelection
 
 
-class quiz(commands.Cog):
+class Quiz(commands.Cog):
     def __init__(self, client: commands.Bot):
         self.client = client
 
     @app_commands.command(name="quiz", description="Play a trivia quiz!")
     async def quiz(self, interaction: discord.Interaction):
-        """Play a trivia quiz alone or with your friends!
-        """
+        """Play a trivia quiz alone or with your friends!"""
         result = (
             {}
         )  # q : view (containing dict with values and all final selections of users)
 
-        questions = fetchQuestions(os.environ.get("TRIVIA_API"))
+        questions = fetch_questions(os.environ.get("TRIVIA_API"))
         await interaction.response.send_message("Quiz starting!")
         first_msg = await interaction.original_response()
 
@@ -47,13 +46,10 @@ class quiz(commands.Cog):
             await asyncio.sleep(time_between_questions)
 
         scoreboard = defaultdict(int)
-        for r in result:
+        for r in result: # pylint: disable=consider-using-dict-items
             correct_answer = questions[r]["correct"]
-            values = result[r].values
-            for user in values:
-                if (
-                    values[user] - 1 == correct_answer
-                ):  # buttons 1-4 question indices 0-3
+            for user, user_value in result[r].items():
+                if user_value - 1 == correct_answer:  # buttons 1-4 question indices 0-3
                     scoreboard[user] += 1
 
         result_response = ">>> *Results!*\n"
@@ -66,9 +62,9 @@ class quiz(commands.Cog):
         await first_msg.edit(content=result_response)
 
 
-def fetchQuestions(api_url):
+def fetch_questions(api_url):
     res = []
-    response = requests.get(api_url)
+    response = requests.get(api_url, timeout=10)
 
     if response.status_code == 200:
         questions = json.loads(response.text)
@@ -88,4 +84,4 @@ def fetchQuestions(api_url):
 
 
 async def setup(client: commands.Bot) -> None:
-    await client.add_cog(quiz(client))
+    await client.add_cog(Quiz(client))

@@ -1,22 +1,22 @@
-import html
-import logging
-from typing import List, Dict, Optional
-from urllib.parse import urlencode
-import discord
-from discord.ext import commands
-from discord import app_commands
 import asyncio
 from collections import defaultdict
 import os
-import requests
 import json
 import random
+import html
+import logging
+from typing import Dict, Optional
+from urllib.parse import urlencode
+import requests
+import discord
+from discord.ext import commands
+from discord import app_commands
 from cogs.view.answer import AnswerSelection
 
 
 def fetch_categories() -> Dict[str, int]:
     res: Dict[str, int] = {}
-    response = requests.get(os.environ.get("TRIVIA_TDB_CATEGORIES"))
+    response = requests.get(os.environ.get("TRIVIA_TDB_CATEGORIES"), timeout=10)
 
     if response.status_code == 200:
         data = json.loads(response.text)
@@ -41,24 +41,39 @@ class TriviaQuiz(commands.Cog):
 
     @app_commands.command(name="triviaquiz", description="Play a trivia quiz!")
     @app_commands.describe(amount="How many questions? (max 10)")
-    @app_commands.choices(category=[app_commands.Choice(name=k, value=categories[k]) for k in categories.keys()])
-    @app_commands.choices(difficulty=[app_commands.Choice(name=s, value=s.lower()) for s in ["Easy", "Medium", "Hard"]])
-    @app_commands.choices(type=[app_commands.Choice(name="Multiple choice", value="multiple"),
-                                app_commands.Choice(name="True / False", value="boolean")])
-    async def triviaquiz(self,
-                         interaction: discord.Interaction, amount: int,
-                         category: Optional[app_commands.Choice[int]] = None,
-                         difficulty: Optional[app_commands.Choice[str]] = None,
-                         type: Optional[app_commands.Choice[str]] = None):
-        """Play a trivia quiz alone or with your friends!
-        """
-        result = {}  # q : view (containing dict with values and all final selections of users)
+    @app_commands.choices(
+        category=[app_commands.Choice(name=k, value=v) for k, v in categories.items()]
+    )
+    @app_commands.choices(
+        difficulty=[
+            app_commands.Choice(name=s, value=s.lower())
+            for s in ["Easy", "Medium", "Hard"]
+        ]
+    )
+    @app_commands.choices(
+        choice_type=[
+            app_commands.Choice(name="Multiple choice", value="multiple"),
+            app_commands.Choice(name="True / False", value="boolean"),
+        ]
+    )
+    async def triviaquiz(
+        self,
+        interaction: discord.Interaction,
+        amount: int,
+        category: Optional[app_commands.Choice[int]] = None,
+        difficulty: Optional[app_commands.Choice[str]] = None,
+        choice_type: Optional[app_commands.Choice[str]] = None,
+    ):
+        """Play a trivia quiz alone or with your friends!"""
+        result = (
+            {}
+        )  # q : view (containing dict with values and all final selections of users)
 
         params = {
-            'amount': min(amount, 10),  # max 10 questions
-            'category': category.value if category else None,
-            'difficulty': difficulty.value if difficulty else None,
-            'type': type.value if type else None,
+            "amount": min(amount, 10),  # max 10 questions
+            "category": category.value if category else None,
+            "difficulty": difficulty.value if difficulty else None,
+            "type": choice_type.value if choice_type else None,
         }
         url = f"{os.environ.get('TRIVIA_TDB')}?{urlencode({k: v for k, v in params.items() if v is not None})}"
 
@@ -66,17 +81,16 @@ class TriviaQuiz(commands.Cog):
 
         selected_options_list = []
         for k, v in params.items():
-            if k == 'category' and category:
-                selected_options_list.append(f'{k}: **{category.name}**')
+            if k == "category" and category:
+                selected_options_list.append(f"{k}: **{category.name}**")
             else:
-                selected_options_list.append(f'{k}: **{v if v is not None else "default"}**')
+                selected_options_list.append(
+                    f'{k}: **{v if v is not None else "default"}**'
+                )
 
-        selected_options = '\n'.join(selected_options_list)
+        selected_options = "\n".join(selected_options_list)
 
-        embed = discord.Embed(
-            title="Quiz starting",
-            color=discord.Color.random()
-        )
+        embed = discord.Embed(title="Quiz starting", color=discord.Color.random())
         embed.add_field(name="Settings", value=selected_options, inline=False)
 
         await interaction.response.send_message(embed=embed)
@@ -92,8 +106,9 @@ class TriviaQuiz(commands.Cog):
             question_embed_title = f"{idx}/{amount_questions} **{q['question']}**"
             question_embed_footer = f"{q['category']}, {q['difficulty']}"
 
-            question_embed = discord.Embed(title=question_embed_title,
-                                           color=discord.Color.from_rgb(255, 255, 255))
+            question_embed = discord.Embed(
+                title=question_embed_title, color=discord.Color.from_rgb(255, 255, 255)
+            )
 
             question_embed.set_footer(text=question_embed_footer)
 
@@ -119,13 +134,16 @@ class TriviaQuiz(commands.Cog):
                 remaining_seconds -= 1
                 await asyncio.sleep(1)
 
-            result_embed = discord.Embed(title=question_embed_title,
-                                         color=discord.Color.from_rgb(0, 163, 108))
+            result_embed = discord.Embed(
+                title=question_embed_title, color=discord.Color.from_rgb(0, 163, 108)
+            )
 
             result_embed.add_field(name="Answers", value=possible_answers)
-            result_embed.add_field(name="Correct",
-                                   value=f"{q['correct'] + 1}. {q['answers'][q['correct']]}",
-                                   inline=False)
+            result_embed.add_field(
+                name="Correct",
+                value=f"{q['correct'] + 1}. {q['answers'][q['correct']]}",
+                inline=False,
+            )
             result_embed.set_footer(text=question_embed_footer)
 
             await sent_question.edit(embed=result_embed, view=None)
@@ -141,16 +159,17 @@ class TriviaQuiz(commands.Cog):
 
         # count correct answers for scoreboard
         scoreboard = defaultdict(int)
-        for r in result:
+        for r in result:  # pylint: disable=consider-using-dict-items
             correct_answer = questions[r]["correct"]
-            values = result[r].values
-            for user in values:
-                if values[user] - 1 == correct_answer:  # buttons 1-4 question indices 0-3
+            for user, user_value in result[r].items():
+                if user_value - 1 == correct_answer:  # buttons 1-4 question indices 0-3
                     scoreboard[user] += 1
 
         # edit first embed to show scoreboard
         result_response = f"Total questions: {len(questions)}\n\n:crown:"
-        for user, score in sorted(scoreboard.items(), key=lambda item: item[1], reverse=True):
+        for user, score in sorted(
+            scoreboard.items(), key=lambda item: item[1], reverse=True
+        ):
             result_response += f"{user}: {score}\n"
 
         embed.add_field(name="Results", value=result_response)
@@ -160,7 +179,7 @@ class TriviaQuiz(commands.Cog):
 
 def fetch_questions(api_url):
     res = []
-    response = requests.get(api_url)
+    response = requests.get(api_url, timeout=10)
 
     if response.status_code == 200:
         data = json.loads(response.text)
@@ -180,7 +199,6 @@ def fetch_questions(api_url):
 
                 incorrect_answers.insert(correct_pos, correct_answer)
 
-                # TODO refactor this to class
                 res.append(
                     {
                         "id": idx,
