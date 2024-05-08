@@ -9,21 +9,16 @@ MAX_MESSAGE_LENGTH = 2000  # characters
 BREAK_LINE = "\n---------------------------------\n"
 AI_MODELS = [
     "GPT-3.5-TURBO-0125",
-    "GPT-3.5-TURBO-1106",
-    "GPT-3.5-TURBO-0613",
     "GEMINI-PRO",
+    "GEMINI-1.5-PRO-LATEST",
     "LLAMA-2-70B-CHAT",
-    "LLAMA-2-13B-CHAT",
-    "LLAMA-2-7B-CHAT",
-    "MISTRAL-7B",
-    "MIXTRAL-8X7B",
+    "MIXTRAL-8X22B-INSTRUCT",
+    "CLAUDE-3-HAIKU-20240307"
 ]
 IMG_MODELS = [
     "SDXL",
-    "KANDINSKY-3",
-    "KANDINSKY-2.2",
-    "KANDINSKY-2",
-    "STABLE-DIFFUSION-2.1",
+    "PLAYGROUND-V2.5",
+    "KANDINSKY-3.1"
 ]
 
 
