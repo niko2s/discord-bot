@@ -5,6 +5,10 @@ from discord import app_commands
 import requests
 
 
+URBAN_HOST = "urban-dictionary7.p.rapidapi.com"
+URBAN_BASE_URL = f"https://{URBAN_HOST}/v0/"
+
+
 # serves as example/template for cogs
 class Urban(commands.Cog):
     def __init__(self, client: commands.Bot):
@@ -13,20 +17,18 @@ class Urban(commands.Cog):
     @app_commands.command(name="urban", description="Look up a word!")
     @app_commands.describe(search="What word should I look up?")
     async def urban(self, interaction: discord.Interaction, search: str = None):
-        url = os.getenv("URBAN_URL")
-
         querystring = None
 
         # if no word was given, look up random word
         if search:
-            url += "define"
+            url = URBAN_BASE_URL + "define"
             querystring = {"term": search}
         else:
-            url += "random"
+            url = URBAN_BASE_URL + "random"
 
         headers = {
             "X-RapidAPI-Key": os.getenv("URBAN_KEY"),
-            "X-RapidAPI-Host": os.getenv("URBAN_HOST"),
+            "X-RapidAPI-Host": URBAN_HOST,
         }
 
         response = requests.get(url, headers=headers, params=querystring, timeout=10)

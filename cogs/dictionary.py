@@ -1,8 +1,10 @@
-import os
 import discord
 from discord.ext import commands
 from discord import app_commands
 import requests
+
+
+DICTIONARY_API = "https://api.dictionaryapi.dev/api/v2/entries/en/"
 
 
 # serves as example/template for cogs
@@ -13,9 +15,7 @@ class Dictionary(commands.Cog):
     @app_commands.command(name="word", description="Look up a word!")
     @app_commands.describe(search="What word should I look up?")
     async def word(self, interaction: discord.Interaction, search: str):
-        api = os.getenv("DICTIONARY_API")
-
-        response = requests.get(api + search, timeout=10)
+        response = requests.get(DICTIONARY_API + search, timeout=10)
         if response.status_code == 200:
             data = response.json()[0]
 

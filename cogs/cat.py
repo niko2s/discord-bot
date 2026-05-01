@@ -1,4 +1,3 @@
-import os
 import logging
 import requests
 import discord
@@ -7,13 +6,16 @@ from discord import app_commands
 from utils import download
 
 
+CAT_API = "https://api.thecatapi.com/v1/images/search"
+
+
 class Cat(commands.Cog):
     def __init__(self, client: commands.Bot):
         self.client = client
 
     @app_commands.command(name="cat", description="Sends random cat picture!")
     async def cat(self, interaction: discord.Interaction):
-        response = requests.get(os.environ.get("CAT_API"), timeout=10)
+        response = requests.get(CAT_API, timeout=10)
         if response.status_code == 200:
             data = response.json()[0]
             file_data = await download.download_file(data["url"])

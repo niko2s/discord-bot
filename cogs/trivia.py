@@ -1,6 +1,5 @@
 import asyncio
 from collections import defaultdict
-import os
 import json
 import random
 import discord
@@ -8,6 +7,9 @@ from discord.ext import commands
 from discord import app_commands
 import requests
 from cogs.view.answer import AnswerSelection
+
+
+TRIVIA_API = "https://the-trivia-api.com/v2/questions"
 
 
 class Quiz(commands.Cog):
@@ -21,7 +23,7 @@ class Quiz(commands.Cog):
             {}
         )  # q : view (containing dict with values and all final selections of users)
 
-        questions = fetch_questions(os.environ.get("TRIVIA_API"))
+        questions = fetch_questions(TRIVIA_API)
         await interaction.response.send_message("Quiz starting!")
         first_msg = await interaction.original_response()
 

@@ -1,6 +1,5 @@
 import asyncio
 from collections import defaultdict
-import os
 import json
 import random
 import html
@@ -14,9 +13,13 @@ from discord import app_commands
 from cogs.view.answer import AnswerSelection
 
 
+TRIVIA_TDB_API = "https://opentdb.com/api.php"
+TRIVIA_TDB_CATEGORIES_API = "https://opentdb.com/api_category.php"
+
+
 def fetch_categories() -> Dict[str, int]:
     res: Dict[str, int] = {}
-    response = requests.get(os.environ.get("TRIVIA_TDB_CATEGORIES"), timeout=10)
+    response = requests.get(TRIVIA_TDB_CATEGORIES_API, timeout=10)
 
     if response.status_code == 200:
         data = json.loads(response.text)
@@ -75,7 +78,7 @@ class TriviaQuiz(commands.Cog):
             "difficulty": difficulty.value if difficulty else None,
             "type": choice_type.value if choice_type else None,
         }
-        url = f"{os.environ.get('TRIVIA_TDB')}?{urlencode({k: v for k, v in params.items() if v is not None})}"
+        url = f"{TRIVIA_TDB_API}?{urlencode({k: v for k, v in params.items() if v is not None})}"
 
         questions = fetch_questions(url)
 
