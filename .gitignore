@@ -11,6 +11,8 @@ __pycache__/
 # Application logs
 logs
 
+DEPLOY.md
+
 # Editor/OSX specific files
 .vscode
 .claude
