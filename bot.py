@@ -33,7 +33,11 @@ class Client(commands.Bot):
         logging.info("Synced %s command(s)", len(synced))
 
 if __name__ == "__main__":
-    load_dotenv(find_dotenv(), override=True)
+    from secrets_loader import load_secret_from_aws
+
+    # AWS Secrets Manager (production) takes precedence; .env fills any gaps for local dev.
+    load_secret_from_aws()
+    load_dotenv(find_dotenv(), override=False)
 
     client = Client()
     client.run(os.environ.get("DISCORD_TOKEN"), root_logger=True)

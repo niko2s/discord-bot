@@ -1,0 +1,46 @@
+# Compose substitutes ${BOT_IMAGE}, ${AWS_REGION} etc. from the same `.env`.
+# On EC2 that file is symlinked from /home/ec2-user/.bot.env (Terraform creates it).
+# For local dev, populate `.env` with DISCORD_TOKEN / OPENAI_API_KEY / URBAN_KEY etc.
+# (.env.example shows the keys.) Don't set BOT_SECRET_ID locally — that's the AWS path.
+
+services:
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    restart: unless-stopped
+    environment:
+      _JAVA_OPTIONS: "-Djava.net.preferIPv4Stack=true"
+    volumes:
+      - ./application.yaml:/opt/Lavalink/application.yml:ro
+      - lavalink-plugins:/opt/Lavalink/plugins
+      - lavalink-logs:/opt/Lavalink/logs
+    networks:
+      - bot-net
+    healthcheck:
+      test: ["CMD", "sh", "-c", "echo > /dev/tcp/127.0.0.1/2333"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+
+  bot:
+    image: ${BOT_IMAGE:-discord-bot:dev}
+    build: .
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      LAVALINK_HOST: lavalink
+      LAVALINK_PORT: "2333"
+      LAVALINK_PASSWORD: "youshallnotpass"
+    depends_on:
+      lavalink:
+        condition: service_healthy
+    networks:
+      - bot-net
+
+networks:
+  bot-net:
+
+volumes:
+  lavalink-plugins:
+  lavalink-logs:
