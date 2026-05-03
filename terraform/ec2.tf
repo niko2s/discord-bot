@@ -2,13 +2,6 @@ resource "aws_security_group" "bot" {
   name        = "${var.name}-sg"
   description = "Discord bot egress only"
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["18.185.44.40/29"]  # EC2 Instance Connect (eu-central-1)
-  }
-
   egress {
     from_port   = 0
     to_port     = 0

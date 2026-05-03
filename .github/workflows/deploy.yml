@@ -1,8 +1,16 @@
-name: Deploy
+name: Build & Deploy to AWS
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'bot.py'
+      - 'secrets_loader.py'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'cogs/**'
+      - 'utils/**'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 permissions:
