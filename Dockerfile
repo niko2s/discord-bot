@@ -9,7 +9,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 COPY --from=builder /install /usr/local
-COPY bot.py ./
+COPY bot.py secrets_loader.py ./
 COPY cogs ./cogs
 COPY utils ./utils
 
