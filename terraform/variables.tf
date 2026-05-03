@@ -16,7 +16,3 @@ variable "instance_type" {
   default     = "t4g.small"
 }
 
-variable "repo_url" {
-  description = "Git URL the EC2 box clones at first boot (e.g. https://github.com/you/discord-bot.git)."
-  type        = string
-}

@@ -1,7 +1,5 @@
-# Compose substitutes ${BOT_IMAGE}, ${AWS_REGION} etc. from the same `.env`.
-# On EC2 that file is symlinked from /home/ec2-user/.bot.env (Terraform creates it).
-# For local dev, populate `.env` with DISCORD_TOKEN / OPENAI_API_KEY / URBAN_KEY etc.
-# (.env.example shows the keys.) Don't set BOT_SECRET_ID locally — that's the AWS path.
+# On EC2: BOT_IMAGE and BOT_SECRET_ID come from /home/ec2-user/.bot.env (symlinked as .env).
+# For local dev, populate .env from .env.example.
 
 services:
   lavalink:

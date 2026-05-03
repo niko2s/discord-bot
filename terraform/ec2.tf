@@ -2,6 +2,13 @@ resource "aws_security_group" "bot" {
   name        = "${var.name}-sg"
   description = "Discord bot egress only"
 
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["18.185.44.40/29"]  # EC2 Instance Connect (eu-central-1)
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -21,8 +28,11 @@ resource "aws_instance" "bot" {
     log_group     = aws_cloudwatch_log_group.all.name
     bot_image     = "${aws_ecr_repository.bot.repository_url}:latest"
     bot_secret_id = aws_secretsmanager_secret.bot.name
-    repo_url      = var.repo_url
   })
+
+  root_block_device {
+    volume_size = 30
+  }
 
   tags = {
     Name = var.name

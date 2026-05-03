@@ -51,6 +51,7 @@ jobs:
       - name: Deploy via SSM
         env:
           INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          IMAGE: ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
         run: |
           set -euo pipefail
 
@@ -58,15 +59,14 @@ jobs:
             --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript \
             --comment "Deploy ${{ github.sha }}" \
-            --parameters commands='[
-              "set -eux",
-              "cd /home/ec2-user/bot",
-              "sudo -u ec2-user git fetch --all",
-              "sudo -u ec2-user git reset --hard origin/main",
-              "sudo -u ec2-user docker compose pull",
-              "sudo -u ec2-user docker compose up -d --remove-orphans",
-              "sudo -u ec2-user docker image prune -f"
-            ]' \
+            --parameters commands="[
+              \"set -eux\",
+              \"sed -i 's|^BOT_IMAGE=.*|BOT_IMAGE=$IMAGE|' /home/ec2-user/.bot.env\",
+              \"cd /home/ec2-user/bot\",
+              \"sudo -u ec2-user docker compose pull\",
+              \"sudo -u ec2-user docker compose up -d --remove-orphans\",
+              \"sudo -u ec2-user docker image prune -f\"
+            ]" \
             --query Command.CommandId --output text)
 
           echo "Command ID: $CMD_ID"
