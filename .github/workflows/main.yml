@@ -1,13 +1,17 @@
-name: Build push and deploy to Azure
+# DISABLED — kept for historical reference. The bot now deploys to AWS EC2 via
+# .github/workflows/deploy.yml. To re-enable, uncomment the triggers below.
+
+name: Build push and deploy to Azure (disabled)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
     build-and-deploy:
+        if: false
         runs-on: ubuntu-latest
         environment: discord-env
         steps:

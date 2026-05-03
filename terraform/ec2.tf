@@ -16,55 +16,13 @@ resource "aws_instance" "bot" {
   iam_instance_profile   = aws_iam_instance_profile.bot.name
   vpc_security_group_ids = [aws_security_group.bot.id]
 
-  user_data = <<-EOT
-    #!/bin/bash
-    set -eux
-
-    dnf update -y
-    dnf install -y docker git amazon-ecr-credential-helper
-
-    # Send all container logs to CloudWatch by default.
-    mkdir -p /etc/docker
-    cat > /etc/docker/daemon.json <<JSON
-    {
-      "log-driver": "awslogs",
-      "log-opts": {
-        "awslogs-region": "${var.region}",
-        "awslogs-group": "${aws_cloudwatch_log_group.all.name}",
-        "awslogs-create-group": "false",
-        "tag": "{{.Name}}"
-      }
-    }
-    JSON
-
-    systemctl enable --now docker
-    usermod -aG docker ec2-user
-
-    # Compose v2 plugin (ARM64 binary).
-    mkdir -p /usr/libexec/docker/cli-plugins
-    curl -fsSL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-aarch64" \
-      -o /usr/libexec/docker/cli-plugins/docker-compose
-    chmod +x /usr/libexec/docker/cli-plugins/docker-compose
-
-    # ECR credential helper for ec2-user (so `docker pull` works without explicit login).
-    mkdir -p /home/ec2-user/.docker
-    cat > /home/ec2-user/.docker/config.json <<DOCKER
-    { "credsStore": "ecr-login" }
-    DOCKER
-    chown -R ec2-user:ec2-user /home/ec2-user/.docker
-
-    # Compose substitution-time env (BOT_IMAGE, BOT_SECRET_ID, AWS_REGION).
-    # Lives outside the repo so `git pull` doesn't clobber it.
-    cat > /home/ec2-user/.bot.env <<ENV
-    BOT_IMAGE=${aws_ecr_repository.bot.repository_url}:latest
-    BOT_SECRET_ID=${aws_secretsmanager_secret.bot.name}
-    AWS_REGION=${var.region}
-    ENV
-    chown ec2-user:ec2-user /home/ec2-user/.bot.env
-
-    sudo -u ec2-user git clone ${var.repo_url} /home/ec2-user/bot
-    ln -sf /home/ec2-user/.bot.env /home/ec2-user/bot/.env
-  EOT
+  user_data = templatefile("${path.module}/user_data.sh.tpl", {
+    region        = var.region
+    log_group     = aws_cloudwatch_log_group.all.name
+    bot_image     = "${aws_ecr_repository.bot.repository_url}:latest"
+    bot_secret_id = aws_secretsmanager_secret.bot.name
+    repo_url      = var.repo_url
+  })
 
   tags = {
     Name = var.name

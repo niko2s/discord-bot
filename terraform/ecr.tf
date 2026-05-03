@@ -1,11 +1,5 @@
 resource "aws_ecr_repository" "bot" {
-  name                 = "${var.name}/bot"
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
+  name         = "${var.name}/bot"
   force_delete = true
 }
 

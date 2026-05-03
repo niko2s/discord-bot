@@ -10,19 +10,16 @@ resource "aws_iam_role" "bot" {
   })
 }
 
-# Session Manager / Run-Command access.
 resource "aws_iam_role_policy_attachment" "ssm" {
   role       = aws_iam_role.bot.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-# Pull from ECR.
 resource "aws_iam_role_policy_attachment" "ecr_read" {
   role       = aws_iam_role.bot.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-# Read the runtime secret + write CloudWatch Logs.
 resource "aws_iam_role_policy" "runtime" {
   name = "${var.name}-runtime"
   role = aws_iam_role.bot.id

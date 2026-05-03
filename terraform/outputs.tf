@@ -4,26 +4,26 @@ output "instance_id" {
 }
 
 output "public_ip" {
-  description = "Public IPv4 of the bot host (for occasional manual SSM sessions)."
+  description = "Public IPv4 of the bot host."
   value       = aws_instance.bot.public_ip
 }
 
 output "ecr_repository_url" {
-  description = "ECR repository URL — set as the ECR_REPOSITORY GitHub Actions variable (just the path, e.g. discord-bot/bot)."
+  description = "ECR repository URL."
   value       = aws_ecr_repository.bot.repository_url
 }
 
 output "ecr_repository_name" {
-  description = "Repository name (without the registry host), used by the deploy workflow."
+  description = "ECR repository name (no registry host)."
   value       = aws_ecr_repository.bot.name
 }
 
 output "secret_arn" {
-  description = "ARN of the Secrets Manager secret. Populate its value via `aws secretsmanager put-secret-value` (see DEPLOY.md)."
+  description = "Secrets Manager secret ARN."
   value       = aws_secretsmanager_secret.bot.arn
 }
 
 output "log_group" {
-  description = "CloudWatch log group containing all container logs."
+  description = "CloudWatch log group for container logs."
   value       = aws_cloudwatch_log_group.all.name
 }

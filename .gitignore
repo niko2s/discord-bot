@@ -13,6 +13,12 @@ logs
 
 DEPLOY.md
 
+# Lavalink runtime artifacts
+lavalink-startup.log
+Lavalink.jar
+Lavalink.old.jar
+plugins/
+
 # Editor/OSX specific files
 .vscode
 .claude

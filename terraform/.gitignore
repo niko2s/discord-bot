@@ -4,3 +4,5 @@
 *.tfvars
 *.tfvars.json
 .terraform.lock.hcl
+
+backend.hcl
