@@ -74,7 +74,7 @@ class Ai(commands.Cog):
                 prompt=prompt,
                 size="1024x1024",
                 quality="standard",
-                n="1",
+                n=1,
             )
 
             image_data = await download.download_file(response.data[0].url)

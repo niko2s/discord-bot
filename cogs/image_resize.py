@@ -98,14 +98,20 @@ async def handle_resize_request(
     """
     await interaction.response.defer(thinking=True)
 
-    type_, subtype = image.content_type.split("/")
+    if not image.content_type or "/" not in image.content_type:
+        await interaction.followup.send(
+            f"Wrong file format `{image.content_type}`, only images supported"
+        )
+        return
+
+    type_, subtype = image.content_type.split("/", 1)
     name, ext = image.filename.rsplit(".", 1)
 
     if type_ == ("image"):
         # read discord.Attachment into PIL.Image and resize it
         data = await download.download_file(image.url)
         img = Image.open(data)
-        img = img.resize(target_size, Image.LANCZO)  # pylint: disable=no-member
+        img = img.resize(target_size, Image.Resampling.LANCZOS)
         # write to buffer, so it can be sent
         img_buffer = BytesIO()
         img.save(img_buffer, format=subtype)

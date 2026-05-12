@@ -50,7 +50,8 @@ class Quiz(commands.Cog):
         scoreboard = defaultdict(int)
         for r in result: # pylint: disable=consider-using-dict-items
             correct_answer = questions[r]["correct"]
-            for user, user_value in result[r].items():
+            for user, user_value in result[r].values.items():
+                scoreboard.setdefault(user, 0)
                 if user_value - 1 == correct_answer:  # buttons 1-4 question indices 0-3
                     scoreboard[user] += 1
 
