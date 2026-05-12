@@ -34,19 +34,30 @@ def fetch_categories() -> Dict[str, int]:
         return {}
 
 
-categories: Dict[str, int] = fetch_categories()
-
-
 class TriviaQuiz(commands.Cog):
 
     def __init__(self, client: commands.Bot):
         self.client = client
+        self.categories: Dict[str, int] = {}
+
+    async def cog_load(self) -> None:
+        # Fetch off the event loop so a slow/down API can't block bot startup.
+        self.categories = await asyncio.to_thread(fetch_categories)
+
+    async def _category_autocomplete(
+        self, interaction: discord.Interaction, current: str
+    ) -> list[app_commands.Choice[int]]:
+        current_lower = current.lower()
+        matches = [
+            app_commands.Choice(name=name, value=cat_id)
+            for name, cat_id in self.categories.items()
+            if current_lower in name.lower()
+        ]
+        return matches[:25]
 
     @app_commands.command(name="triviaquiz", description="Play a trivia quiz!")
     @app_commands.describe(amount="How many questions? (max 10)")
-    @app_commands.choices(
-        category=[app_commands.Choice(name=k, value=v) for k, v in categories.items()]
-    )
+    @app_commands.autocomplete(category=_category_autocomplete)
     @app_commands.choices(
         difficulty=[
             app_commands.Choice(name=s, value=s.lower())
@@ -63,7 +74,7 @@ class TriviaQuiz(commands.Cog):
         self,
         interaction: discord.Interaction,
         amount: int,
-        category: Optional[app_commands.Choice[int]] = None,
+        category: Optional[int] = None,
         difficulty: Optional[app_commands.Choice[str]] = None,
         choice_type: Optional[app_commands.Choice[str]] = None,
     ):
@@ -74,7 +85,7 @@ class TriviaQuiz(commands.Cog):
 
         params = {
             "amount": min(amount, 10),  # max 10 questions
-            "category": category.value if category else None,
+            "category": category,
             "difficulty": difficulty.value if difficulty else None,
             "type": choice_type.value if choice_type else None,
         }
@@ -82,10 +93,15 @@ class TriviaQuiz(commands.Cog):
 
         questions = fetch_questions(url)
 
+        category_name = next(
+            (n for n, cid in self.categories.items() if cid == category), None
+        )
         selected_options_list = []
         for k, v in params.items():
-            if k == "category" and category:
-                selected_options_list.append(f"{k}: **{category.name}**")
+            if k == "category" and category is not None:
+                selected_options_list.append(
+                    f"{k}: **{category_name or category}**"
+                )
             else:
                 selected_options_list.append(
                     f'{k}: **{v if v is not None else "default"}**'

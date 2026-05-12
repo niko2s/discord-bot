@@ -6,9 +6,9 @@ And provides an entry point to start the bot.
 
 import logging
 import os
+import sys
 import discord
 from discord.ext import commands
-import nest_asyncio
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -25,12 +25,20 @@ class Client(commands.Bot):
                 name = file_[:-3]
                 await self.load_extension(f"cogs.{name}")
 
+        if os.environ.get("SYNC_COMMANDS") == "1":
+            guild_id = os.environ.get("SYNC_GUILD_ID")
+            if guild_id:
+                guild = discord.Object(id=int(guild_id))
+                self.tree.copy_global_to(guild=guild)
+                synced = await self.tree.sync(guild=guild)
+                logging.info("Synced %s command(s) to guild %s", len(synced), guild_id)
+            else:
+                synced = await self.tree.sync()
+                logging.info("Synced %s command(s) globally", len(synced))
+
     async def on_ready(self):
         logging.info("Logged on as %s!", self.user)
 
-        nest_asyncio.apply()
-        synced = await self.tree.sync()
-        logging.info("Synced %s command(s)", len(synced))
 
 if __name__ == "__main__":
     from secrets_loader import load_secret_from_aws
@@ -39,5 +47,9 @@ if __name__ == "__main__":
     load_secret_from_aws()
     load_dotenv(find_dotenv(), override=False)
 
+    token = os.environ.get("DISCORD_TOKEN")
+    if not token:
+        sys.exit("DISCORD_TOKEN is not set. Aborting.")
+
     client = Client()
-    client.run(os.environ.get("DISCORD_TOKEN"), root_logger=True)
+    client.run(token, root_logger=True)
