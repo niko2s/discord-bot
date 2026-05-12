@@ -206,6 +206,7 @@ class TriviaQuiz(commands.Cog):
             crown = ":crown: " if score == top_score and score > 0 else ""
             result_response += f"{crown}{user}: {score}\n"
 
+        embed.title = "Quiz finished"
         embed.add_field(name="Results", value=result_response)
 
         await interaction.edit_original_response(embed=embed)
