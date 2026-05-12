@@ -122,6 +122,7 @@ class TriviaQuiz(commands.Cog):
 
         amount_questions = len(questions)
         for idx, q in enumerate(questions, 1):
+            is_boolean = len(q["answers"]) == 2
             question_embed_title = f"{idx}/{amount_questions} **{q['question']}**"
             question_embed_footer = f"{q['category']}, {q['difficulty']}"
 
@@ -132,46 +133,56 @@ class TriviaQuiz(commands.Cog):
             question_embed.set_footer(text=question_embed_footer)
 
             possible_answers = ""
+            if not is_boolean:
+                for idx_a, a in enumerate(q["answers"], 1):
+                    possible_answers += f"{idx_a}. {a}\n"
+                question_embed.add_field(name="Answers", value=possible_answers)
 
-            for idx_a, a in enumerate(q["answers"], 1):
-                possible_answers += f"{idx_a}. {a}\n"
-
-            question_embed.add_field(name="Answers", value=possible_answers)
-
-            view = AnswerSelection()
+            view = AnswerSelection(boolean=is_boolean)
             result[q["id"]] = view
 
             sent_question: discord.Message = await interaction.channel.send(
                 embed=question_embed, view=view
             )
-            remaining_seconds = time_between_questions
-
             timer: discord.Message = await interaction.channel.send("Timer starting!")
 
-            while remaining_seconds:
-                await timer.edit(content=f"Time remaining: {remaining_seconds}")
-                remaining_seconds -= 1
+            for remaining in range(time_between_questions, -1, -1):
+                await timer.edit(content=f"Time remaining: {remaining}")
                 await asyncio.sleep(1)
 
             result_embed = discord.Embed(
                 title=question_embed_title, color=discord.Color.from_rgb(0, 163, 108)
             )
 
-            result_embed.add_field(name="Answers", value=possible_answers)
+            correct_value = q["answers"][q["correct"]]
+            if is_boolean:
+                correct_display = correct_value
+            else:
+                result_embed.add_field(name="Answers", value=possible_answers)
+                correct_display = f"{q['correct'] + 1}. {correct_value}"
             result_embed.add_field(
                 name="Correct",
-                value=f"{q['correct'] + 1}. {q['answers'][q['correct']]}",
+                value=correct_display,
                 inline=False,
             )
+            if view.values:
+                votes_lines = []
+                for user, choice in view.values.items():
+                    if 1 <= choice <= len(q["answers"]):
+                        voted = q["answers"][choice - 1]
+                    else:
+                        voted = "?"
+                    votes_lines.append(f"{user}: {voted}")
+                result_embed.add_field(
+                    name="Votes", value="\n".join(votes_lines), inline=False
+                )
             result_embed.set_footer(text=question_embed_footer)
 
             await sent_question.edit(embed=result_embed, view=None)
 
-            remaining_seconds = time_to_next_question
             next_action_msg = "Next question" if idx != len(questions) else "Results"
-            while remaining_seconds:
-                await timer.edit(content=f"{next_action_msg} in: {remaining_seconds}")
-                remaining_seconds -= 1
+            for remaining in range(time_to_next_question, -1, -1):
+                await timer.edit(content=f"{next_action_msg} in: {remaining}")
                 await asyncio.sleep(1)
 
             await interaction.channel.delete_messages([sent_question, timer])
@@ -186,11 +197,14 @@ class TriviaQuiz(commands.Cog):
                     scoreboard[user] += 1
 
         # edit first embed to show scoreboard
-        result_response = f"Total questions: {len(questions)}\n\n:crown:"
-        for user, score in sorted(
+        result_response = f"Total questions: {len(questions)}\n\n"
+        sorted_scores = sorted(
             scoreboard.items(), key=lambda item: item[1], reverse=True
-        ):
-            result_response += f"{user}: {score}\n"
+        )
+        top_score = sorted_scores[0][1] if sorted_scores else 0
+        for user, score in sorted_scores:
+            crown = ":crown: " if score == top_score and score > 0 else ""
+            result_response += f"{crown}{user}: {score}\n"
 
         embed.add_field(name="Results", value=result_response)
 
