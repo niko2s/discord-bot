@@ -14,7 +14,7 @@ services:
     networks:
       - bot-net
     healthcheck:
-      test: ["CMD", "sh", "-c", "echo > /dev/tcp/127.0.0.1/2333"]
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/127.0.0.1/2333"]
       interval: 10s
       timeout: 3s
       retries: 12

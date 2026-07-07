@@ -1,0 +1,9 @@
+# Direct dependencies. Compile the lock file with:
+#   uvx --python 3.12 --from pip-tools pip-compile requirements.in -o requirements.txt --strip-extras
+aiohttp
+boto3
+discord.py
+openai
+pillow
+python-dotenv
+requests
