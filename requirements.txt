@@ -20,9 +20,9 @@ anyio==4.14.1
     #   openai
 attrs==26.1.0
     # via aiohttp
-boto3==1.43.39
+boto3==1.43.43
     # via -r requirements.in
-botocore==1.43.42
+botocore==1.43.43
     # via
     #   boto3
     #   s3transfer
