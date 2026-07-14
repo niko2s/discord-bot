@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import requests
 import discord
@@ -15,18 +16,20 @@ class Cat(commands.Cog):
 
     @app_commands.command(name="cat", description="Sends random cat picture!")
     async def cat(self, interaction: discord.Interaction):
-        response = requests.get(CAT_API, timeout=10)
-        if response.status_code == 200:
-            data = response.json()[0]
-            file_data = await download.download_file(data["url"])
-            await interaction.response.send_message(
-                file=discord.File(file_data, "cat.jpg")
-            )
-        else:
-            logging.error(
-                "Error at cat command. response status code: %s", response.status_code
-            )
-            await interaction.response.send_message("Failed to retrieve cat picture")
+        await interaction.response.defer(thinking=True)
+        try:
+            response = await asyncio.to_thread(requests.get, CAT_API, timeout=10)
+            response.raise_for_status()
+            image_url = response.json()[0]["url"]
+            file_data = await download.download_file(image_url)
+            if file_data is None:
+                raise ValueError("cat image download failed")
+        except (requests.RequestException, KeyError, IndexError, TypeError, ValueError):
+            logging.exception("Failed to retrieve cat picture")
+            await interaction.followup.send("Failed to retrieve cat picture")
+            return
+
+        await interaction.followup.send(file=discord.File(file_data, "cat.jpg"))
 
 
 async def setup(client: commands.Bot) -> None:

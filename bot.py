@@ -6,6 +6,7 @@ And provides an entry point to start the bot.
 
 import logging
 import os
+from pathlib import Path
 import sys
 import discord
 from discord.ext import commands
@@ -16,11 +17,12 @@ class Client(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix=commands.when_mentioned_or("."),
-            intents=discord.Intents().all(),
+            intents=discord.Intents.default(),
         )
 
     async def setup_hook(self):
-        for file_ in os.listdir("./cogs"):
+        cogs_dir = Path(__file__).parent / "cogs"
+        for file_ in os.listdir(cogs_dir):
             if file_.endswith(".py"):
                 name = file_[:-3]
                 await self.load_extension(f"cogs.{name}")

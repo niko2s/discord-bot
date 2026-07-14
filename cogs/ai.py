@@ -1,8 +1,9 @@
+import os
 import discord
 from discord.ext import commands
 from discord import app_commands
 import openai
-from openai import OpenAI
+from openai import AsyncOpenAI
 from utils import download
 
 MAX_MESSAGE_LENGTH = 2000  # characters
@@ -25,7 +26,7 @@ IMG_MODELS = [
 class Ai(commands.Cog):
     def __init__(self, client: commands.Bot):
         self.client = client
-        self.ai_client = OpenAI()
+        self.ai_client = AsyncOpenAI() if os.environ.get("OPENAI_API_KEY") else None
         self.ai_model = "gemini-pro"
         self.img_model = "sdxl"
 
@@ -33,43 +34,55 @@ class Ai(commands.Cog):
     @app_commands.describe(prompt="Enter a message")
     async def ai(self, interaction: discord.Interaction, prompt: str):
         """Chat with AI"""
+        if self.ai_client is None:
+            await interaction.response.send_message(
+                "AI commands are unavailable because OPENAI_API_KEY is not configured.",
+                ephemeral=True,
+            )
+            return
+
         await interaction.response.defer(thinking=True)
         quote = f"{interaction.user.mention}: `{prompt}`"
 
         try:
-            result = self.ai_client.chat.completions.create(
+            result = await self.ai_client.chat.completions.create(
                 model=self.ai_model, messages=[{"role": "user", "content": prompt}]
             )
 
             follow_up: discord.Webhook = interaction.followup
-            result = f"{quote}{BREAK_LINE}" + result.choices[0].message.content
+            content = result.choices[0].message.content or "The model returned no text."
+            result_text = f"{quote}{BREAK_LINE}{content}"
 
-            for i in range(0, len(result), MAX_MESSAGE_LENGTH):
-                chunk = result[i : i + MAX_MESSAGE_LENGTH]
+            for i in range(0, len(result_text), MAX_MESSAGE_LENGTH):
+                chunk = result_text[i : i + MAX_MESSAGE_LENGTH]
                 await follow_up.send(content=chunk)
 
         except openai.PermissionDeniedError as e:
             await interaction.followup.send(
-            f"{quote}{BREAK_LINE}Permission denied. Reason: "
-            f"{e.body['type']} - {e.body['message']}"
-        )
+                f"{quote}{BREAK_LINE}Permission denied. {api_error_message(e)}"
+            )
 
         except openai.APIError as e:
             await interaction.followup.send(
-                content=(
-                    f"{quote}{BREAK_LINE}API Error. "
-                    f"{e.body['type']} - {e.body['message']}")
+                content=f"{quote}{BREAK_LINE}API Error. {api_error_message(e)}"
             )
 
     @app_commands.command(name="img", description="Image with AI!")
     @app_commands.describe(prompt="Enter a prompt")
     async def img(self, interaction: discord.Interaction, prompt: str):
         """Chat with AI"""
+        if self.ai_client is None:
+            await interaction.response.send_message(
+                "AI commands are unavailable because OPENAI_API_KEY is not configured.",
+                ephemeral=True,
+            )
+            return
+
         await interaction.response.defer(thinking=True)
         quote = f"{interaction.user.mention}: `{prompt}`"
 
         try:
-            response = self.ai_client.images.generate(
+            response = await self.ai_client.images.generate(
                 model=self.img_model,
                 prompt=prompt,
                 size="1024x1024",
@@ -77,22 +90,25 @@ class Ai(commands.Cog):
                 n=1,
             )
 
-            image_data = await download.download_file(response.data[0].url)
+            image_url = response.data[0].url
+            image_data = await download.download_file(image_url) if image_url else None
+            if image_data is None:
+                await interaction.followup.send(
+                    f"{quote}{BREAK_LINE}The generated image could not be downloaded."
+                )
+                return
             await interaction.followup.send(
                 content=f"{quote}", file=discord.File(image_data, "ai_image.png")
             )
 
         except openai.PermissionDeniedError as e:
             await interaction.followup.send(
-                content=(
-                f"{quote}{BREAK_LINE}Permission denied."
-                f"Reason: {e.body['type']} - {e.body['message']}"
-                )
+                content=f"{quote}{BREAK_LINE}Permission denied. {api_error_message(e)}"
             )
 
         except openai.APIError as e:
             await interaction.followup.send(
-                content=f"{quote}{BREAK_LINE}API Error. {e.body['type']} - {e.body['message']}"
+                content=f"{quote}{BREAK_LINE}API Error. {api_error_message(e)}"
             )
 
     @app_commands.command(name="setai", description="Set the AI model!")
@@ -127,3 +143,15 @@ class Ai(commands.Cog):
 
 async def setup(client: commands.Bot) -> None:
     await client.add_cog(Ai(client))
+
+
+def api_error_message(error: openai.APIError) -> str:
+    body = getattr(error, "body", None)
+    if isinstance(body, dict):
+        error_type = body.get("type")
+        message = body.get("message")
+        if error_type and message:
+            return f"{error_type} - {message}"
+        if message:
+            return str(message)
+    return str(error)
