@@ -3,6 +3,7 @@
 aiohttp
 boto3
 discord.py
+lavalink
 openai
 pillow
 python-dotenv

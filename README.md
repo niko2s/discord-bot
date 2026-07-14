@@ -15,6 +15,7 @@ Containerised with Docker and deployed to AWS EC2. Infrastructure is managed wit
 | `/urban` | Slang and informal word lookup ([Urban Dictionary](https://rapidapi.com/archergardinersheridan/api/urban-dictionary7)) |
 | `/cat` | Random cat image ([The Cat API](https://thecatapi.com)) |
 | `/resize` | Scale images by percentage or to a specific pixel dimension |
+| `/play` … | Music playback via [Lavalink](https://github.com/lavalink-devs/Lavalink) — see `/musichelp` for all player commands |
 
 ## Local Development
 
