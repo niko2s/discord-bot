@@ -27,16 +27,8 @@ class Client(commands.Bot):
                 name = file_[:-3]
                 await self.load_extension(f"cogs.{name}")
 
-        if os.environ.get("SYNC_COMMANDS") == "1":
-            guild_id = os.environ.get("SYNC_GUILD_ID")
-            if guild_id:
-                guild = discord.Object(id=int(guild_id))
-                self.tree.copy_global_to(guild=guild)
-                synced = await self.tree.sync(guild=guild)
-                logging.info("Synced %s command(s) to guild %s", len(synced), guild_id)
-            else:
-                synced = await self.tree.sync()
-                logging.info("Synced %s command(s) globally", len(synced))
+        synced = await self.tree.sync()
+        logging.info("Synced %s command(s) globally", len(synced))
 
     async def on_ready(self):
         logging.info("Logged on as %s!", self.user)
