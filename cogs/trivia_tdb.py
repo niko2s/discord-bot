@@ -1,6 +1,5 @@
 import asyncio
 from collections import defaultdict
-import json
 import random
 import html
 import logging
@@ -19,18 +18,18 @@ TRIVIA_TDB_CATEGORIES_API = "https://opentdb.com/api_category.php"
 
 def fetch_categories() -> Dict[str, int]:
     res: Dict[str, int] = {}
-    response = requests.get(TRIVIA_TDB_CATEGORIES_API, timeout=10)
-
-    if response.status_code == 200:
-        data = json.loads(response.text)
+    try:
+        response = requests.get(TRIVIA_TDB_CATEGORIES_API, timeout=10)
+        response.raise_for_status()
+        data = response.json()
         trivia_categories = data["trivia_categories"]
 
         for category in trivia_categories:
             res[category["name"]] = category["id"]
 
         return res
-    else:
-        logging.error("Failed to fetch trivia categories")
+    except (requests.RequestException, ValueError, KeyError, TypeError):
+        logging.exception("Failed to fetch trivia categories")
         return {}
 
 
@@ -79,19 +78,31 @@ class TriviaQuiz(commands.Cog):
         choice_type: Optional[app_commands.Choice[str]] = None,
     ):
         """Play a trivia quiz alone or with your friends!"""
+        await interaction.response.defer(thinking=True)
+        if not 1 <= amount <= 10:
+            await interaction.edit_original_response(
+                content="The question amount must be between 1 and 10."
+            )
+            return
+
         result = (
             {}
         )  # q : view (containing dict with values and all final selections of users)
 
         params = {
-            "amount": min(amount, 10),  # max 10 questions
+            "amount": amount,
             "category": category,
             "difficulty": difficulty.value if difficulty else None,
             "type": choice_type.value if choice_type else None,
         }
         url = f"{TRIVIA_TDB_API}?{urlencode({k: v for k, v in params.items() if v is not None})}"
 
-        questions = fetch_questions(url)
+        questions = await asyncio.to_thread(fetch_questions, url)
+        if not questions:
+            await interaction.edit_original_response(
+                content="Could not retrieve trivia questions. Try again later."
+            )
+            return
 
         category_name = next(
             (n for n, cid in self.categories.items() if cid == category), None
@@ -112,7 +123,7 @@ class TriviaQuiz(commands.Cog):
         embed = discord.Embed(title="Quiz starting", color=discord.Color.random())
         embed.add_field(name="Settings", value=selected_options, inline=False)
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.edit_original_response(content=None, embed=embed)
 
         await asyncio.sleep(3)
 
@@ -138,7 +149,9 @@ class TriviaQuiz(commands.Cog):
                     possible_answers += f"{idx_a}. {a}\n"
                 question_embed.add_field(name="Answers", value=possible_answers)
 
-            view = AnswerSelection(boolean=is_boolean)
+            view = AnswerSelection(
+                boolean=is_boolean, timeout=time_between_questions
+            )
             result[q["id"]] = view
 
             sent_question: discord.Message = await interaction.channel.send(
@@ -149,6 +162,7 @@ class TriviaQuiz(commands.Cog):
             for remaining in range(time_between_questions, -1, -1):
                 await timer.edit(content=f"Time remaining: {remaining}")
                 await asyncio.sleep(1)
+            view.stop()
 
             result_embed = discord.Embed(
                 title=question_embed_title, color=discord.Color.from_rgb(0, 163, 108)
@@ -167,7 +181,7 @@ class TriviaQuiz(commands.Cog):
             )
             if view.values:
                 votes_lines = []
-                for user, choice in view.values.items():
+                for user, choice in view.values.values():
                     if 1 <= choice <= len(q["answers"]):
                         voted = q["answers"][choice - 1]
                     else:
@@ -185,13 +199,14 @@ class TriviaQuiz(commands.Cog):
                 await timer.edit(content=f"{next_action_msg} in: {remaining}")
                 await asyncio.sleep(1)
 
-            await interaction.channel.delete_messages([sent_question, timer])
+            await sent_question.delete()
+            await timer.delete()
 
         # count correct answers for scoreboard; seed every participant at 0
         scoreboard = defaultdict(int)
         for r in result:  # pylint: disable=consider-using-dict-items
             correct_answer = questions[r]["correct"]
-            for user, user_value in result[r].values.items():
+            for user, user_value in result[r].values.values():
                 scoreboard.setdefault(user, 0)
                 if user_value - 1 == correct_answer:  # buttons 1-4 question indices 0-3
                     scoreboard[user] += 1
@@ -214,10 +229,10 @@ class TriviaQuiz(commands.Cog):
 
 def fetch_questions(api_url):
     res = []
-    response = requests.get(api_url, timeout=10)
-
-    if response.status_code == 200:
-        data = json.loads(response.text)
+    try:
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
         if data["response_code"] == 0:
             questions = data["results"]
 
@@ -244,9 +259,8 @@ def fetch_questions(api_url):
                         "answers": [html.unescape(s) for s in incorrect_answers],
                     }
                 )
-
-    else:
-        logging.error("Failed to retrieve questions")
+    except (requests.RequestException, ValueError, KeyError, TypeError):
+        logging.exception("Failed to retrieve questions")
     return res
 
 

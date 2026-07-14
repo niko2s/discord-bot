@@ -1,6 +1,6 @@
 import asyncio
 from collections import defaultdict
-import json
+import logging
 import random
 import discord
 from discord.ext import commands
@@ -23,9 +23,14 @@ class Quiz(commands.Cog):
             {}
         )  # q : view (containing dict with values and all final selections of users)
 
-        questions = fetch_questions(TRIVIA_API)
-        await interaction.response.send_message("Quiz starting!")
-        first_msg = await interaction.original_response()
+        await interaction.response.defer(thinking=True)
+        questions = await asyncio.to_thread(fetch_questions, TRIVIA_API)
+        if not questions:
+            await interaction.edit_original_response(
+                content="Could not retrieve trivia questions. Try again later."
+            )
+            return
+        first_msg = await interaction.edit_original_response(content="Quiz starting!")
 
         await asyncio.sleep(3)
         time_between_questions = 10
@@ -39,18 +44,19 @@ class Quiz(commands.Cog):
 
             question_with_answers += ""
 
-            view = AnswerSelection()
+            view = AnswerSelection(timeout=time_between_questions)
             result[q["id"]] = view
 
             await interaction.channel.send(
                 question_with_answers, view=view, delete_after=time_between_questions
             )
             await asyncio.sleep(time_between_questions)
+            view.stop()
 
         scoreboard = defaultdict(int)
         for r in result: # pylint: disable=consider-using-dict-items
             correct_answer = questions[r]["correct"]
-            for user, user_value in result[r].values.items():
+            for user, user_value in result[r].values.values():
                 scoreboard.setdefault(user, 0)
                 if user_value - 1 == correct_answer:  # buttons 1-4 question indices 0-3
                     scoreboard[user] += 1
@@ -67,10 +73,15 @@ class Quiz(commands.Cog):
 
 def fetch_questions(api_url):
     res = []
-    response = requests.get(api_url, timeout=10)
+    try:
+        response = requests.get(api_url, timeout=10)
+        response.raise_for_status()
+        questions = response.json()
+    except (requests.RequestException, ValueError, TypeError):
+        logging.exception("Failed to retrieve trivia questions")
+        return res
 
-    if response.status_code == 200:
-        questions = json.loads(response.text)
+    try:
         for idx, q in enumerate(questions):
             insert_pos = random.randint(0, 3)
             q["incorrectAnswers"].insert(insert_pos, q["correctAnswer"])
@@ -82,6 +93,9 @@ def fetch_questions(api_url):
                     "answers": q["incorrectAnswers"],
                 }
             )
+    except (KeyError, TypeError):
+        logging.exception("Trivia API returned an invalid response")
+        return []
 
     return res
 

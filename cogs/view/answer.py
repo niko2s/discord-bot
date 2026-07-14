@@ -20,9 +20,9 @@ class _AnswerButton(Button):
 
 
 class AnswerSelection(View):
-    def __init__(self, *, boolean: bool = False):
-        super().__init__(timeout=None)
-        self.values: dict[str, int] = {}
+    def __init__(self, *, boolean: bool = False, timeout: float = 15):
+        super().__init__(timeout=timeout)
+        self.values: dict[int, tuple[str, int]] = {}
 
         if boolean:
             self.add_item(_AnswerButton(1, "True",  discord.ButtonStyle.success))
@@ -34,8 +34,8 @@ class AnswerSelection(View):
             self.add_item(_AnswerButton(4, "4", discord.ButtonStyle.green))
 
     async def _record(self, interaction: discord.Interaction, choice: int) -> None:
-        key = interaction.user.global_name or interaction.user.name
-        self.values[key] = choice
+        name = interaction.user.global_name or interaction.user.name
+        self.values[interaction.user.id] = (name, choice)
         try:
             await interaction.response.defer()
         except discord.InteractionResponded:
