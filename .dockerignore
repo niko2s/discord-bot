@@ -14,3 +14,6 @@ logs
 terraform
 DEPLOY.md
 README.md
+lavalink-startup.log
+Lavalink.jar
+plugins

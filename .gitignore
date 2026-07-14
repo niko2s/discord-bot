@@ -10,6 +10,12 @@ __pycache__/
 
 # Application logs
 logs
+lavalink-startup.log
+
+# Lavalink runtime artifacts (binary + auto-downloaded plugins)
+Lavalink.jar
+Lavalink.old.jar
+plugins/
 
 DEPLOY.md
 
