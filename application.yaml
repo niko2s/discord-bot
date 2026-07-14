@@ -20,7 +20,7 @@ plugins:
     # After authorizing, copy the refreshToken Lavalink prints into the field below and restart.
     oauth:
       enabled: false
-      refreshToken: "TODO:.env"
+      refreshToken: "" #not needed
 lavalink:
   plugins:
     # https://github.com/lavalink-devs/youtube-source — replacement for the deprecated bundled YT source.
