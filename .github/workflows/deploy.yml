@@ -52,6 +52,9 @@ jobs:
           context: .
           platforms: linux/arm64
           push: true
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            REPOSITORY_URL=${{ github.server_url }}/${{ github.repository }}
           tags: |
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
             ${{ steps.ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
