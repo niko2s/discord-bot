@@ -24,3 +24,6 @@ plugins/
 .claude
 .idea
 .DS_Store
+
+# Agent instructions
+AGENTS.md
