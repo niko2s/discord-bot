@@ -441,7 +441,6 @@ class Music(commands.Cog):
         panel = self._panels.get(guild_id)
         if panel is not None:
             await panel._render_idle()
-        await self.bot.change_presence(activity=None)
         self._idle_tasks.pop(guild_id, None)
 
     async def cog_app_command_error(
@@ -498,12 +497,6 @@ class Music(commands.Cog):
         track = event.track
         # If we were about to leave because the queue had ended, cancel that.
         self._cancel_idle_timer(event.player.guild_id)
-        await self.bot.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.listening,
-                name=track.title[:128],
-            )
-        )
 
         guild = self.bot.get_guild(event.player.guild_id)
         if guild is None:
@@ -512,6 +505,10 @@ class Music(commands.Cog):
         channel_id = event.player.fetch("channel")
         channel = guild.get_channel(channel_id) if channel_id else None
         if channel is None:
+            return
+
+        if event.player.fetch("suppress_next_announcement"):
+            event.player.store("suppress_next_announcement", False)
             return
 
         # If a live panel is active in this guild, skip the per-track announcement
@@ -530,7 +527,6 @@ class Music(commands.Cog):
 
     @lavalink.listener(QueueEndEvent)
     async def on_queue_end(self, event: QueueEndEvent):
-        await self.bot.change_presence(activity=None)
         panel = self._panels.get(event.player.guild_id)
         if panel is not None:
             await panel._render_idle()
@@ -591,10 +587,26 @@ class Music(commands.Cog):
         else:
             track = results.tracks[0]
             player.add(track=track, requester=interaction.user.id)
-            position_in_queue = len(player.queue) if player.is_playing else 0
-            footer = (
-                f"Up next (#{position_in_queue})" if position_in_queue > 0 else "Starting now"
-            )
+            if not player.is_playing:
+                player.store("suppress_next_announcement", True)
+                try:
+                    await player.play()
+                except Exception:
+                    player.store("suppress_next_announcement", False)
+                    raise
+
+                footer = f"Requested by {interaction.user.display_name}"
+                embed = _track_embed(track, title_prefix="Now playing", extra_footer=footer)
+                view = PlayerControls(
+                    self,
+                    interaction.guild.id,
+                    timeout=max(60.0, track.duration / 1000 + 30),
+                )
+                await interaction.followup.send(embed=embed, view=view)
+                return
+
+            position_in_queue = len(player.queue)
+            footer = f"Up next (#{position_in_queue})"
             embed = _track_embed(track, title_prefix="Track enqueued", extra_footer=footer)
 
         await interaction.followup.send(embed=embed)
@@ -719,7 +731,6 @@ class Music(commands.Cog):
         panel = self._panels.get(interaction.guild.id)
         if panel is not None:
             await panel._render_idle()
-        await self.bot.change_presence(activity=None)
         await interaction.response.send_message("👋 Disconnected.")
 
     @app_commands.command(name="player", description="Post a live, self-updating player panel in this channel")
