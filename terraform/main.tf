@@ -18,14 +18,10 @@ provider "aws" {
   region = var.region
 }
 
-# Latest Amazon Linux 2023 ARM64 AMI.
-data "aws_ami" "al2023" {
-  most_recent = true
-  owners      = ["amazon"]
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-arm64"]
-  }
+# Latest standard Amazon Linux 2023 ARM64 AMI. The public parameter avoids
+# accidentally selecting an ECS-optimized image with a matching name.
+data "aws_ssm_parameter" "al2023" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64"
 }
 
 resource "aws_cloudwatch_log_group" "all" {

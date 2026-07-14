@@ -23,6 +23,11 @@ output "secret_arn" {
   value       = aws_secretsmanager_secret.bot.arn
 }
 
+output "nordvpn_secret_arn" {
+  description = "NordVPN service-credentials secret ARN."
+  value       = aws_secretsmanager_secret.nordvpn.arn
+}
+
 output "log_group" {
   description = "CloudWatch log group for container logs."
   value       = aws_cloudwatch_log_group.all.name
