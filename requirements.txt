@@ -21,9 +21,9 @@ anyio==4.14.1
     #   openai
 attrs==26.1.0
     # via aiohttp
-boto3==1.43.43
+boto3==1.43.49
     # via -r requirements.in
-botocore==1.43.43
+botocore==1.43.49
     # via
     #   boto3
     #   s3transfer
@@ -66,7 +66,7 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
-openai==2.44.0
+openai==2.45.0
     # via -r requirements.in
 pillow==12.3.0
     # via -r requirements.in
