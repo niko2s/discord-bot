@@ -6,7 +6,7 @@
 #
 aiohappyeyeballs==2.7.1
     # via aiohttp
-aiohttp==3.14.1
+aiohttp==3.14.2
     # via
     #   -r requirements.in
     #   discord-py
@@ -21,9 +21,9 @@ anyio==4.14.1
     #   openai
 attrs==26.1.0
     # via aiohttp
-boto3==1.43.49
+boto3==1.43.54
     # via -r requirements.in
-botocore==1.43.49
+botocore==1.43.54
     # via
     #   boto3
     #   s3transfer
@@ -66,7 +66,7 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
-openai==2.45.0
+openai==2.47.0
     # via -r requirements.in
 pillow==12.3.0
     # via -r requirements.in
